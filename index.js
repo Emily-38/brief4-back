@@ -2,7 +2,8 @@ const express= require('express')
 const app = express()
 const cors = require('cors')
 const { connect } = require('./src/services/connexionDB')
-const router = require('./src/routes/RouteUser')
+const routerUser = require('./src/routes/RouteUser')
+const routerAnnonce = require('./src/routes/RouteAnnonce')
 
 require('dotenv').config()
 
@@ -18,7 +19,7 @@ connect(process.env.MONGO_URL, (error) => {
     }
 })
 
-app.use('/', router)
-
+app.use('/', routerUser)
+app.use('/', routerAnnonce)
 console.log('wesh')
 app.listen(3000)

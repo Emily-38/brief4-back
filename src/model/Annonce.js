@@ -6,6 +6,7 @@ class Annonce{
         lieu,
         date,
         userId,
+        participants,
         createdAt
     ) {
         this.title = title
@@ -14,6 +15,7 @@ class Annonce{
         this.lieu= lieu
         this.date= date
         this.userId = userId
+        this.participants= participants
         this.createdAt = createdAt
       
     }
