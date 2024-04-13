@@ -1,6 +1,9 @@
 
 const { Annonce } = require("../model/Annonce")
 const client = require('../services/connexionDB.js')
+const {insertUserId}= require('../utils/tokenGuard.js')
+const { ObjectId } = require("bson");
+
 require('dotenv').config()
 
 const CreatArticle = async (request, response) => {
@@ -25,6 +28,7 @@ const CreatArticle = async (request, response) => {
             new Date()
         )
         let result = await client
+        
             .db('YourEvent')
             .collection('annonce')
             .insertOne(annonce)
@@ -33,36 +37,12 @@ const CreatArticle = async (request, response) => {
         console.log(e)
         response.status(500).json(e)
     }
+    
     }
 
 
-    const insertUserId = async (req, res) => {
-       
-        const token = await extractToken(req)
     
-      
-        jwt.verify(
-            token,
-            process.env.SECRET_KEY,
-            async (err, authData) => {
-                if (err) {
-                   
-                    console.log(err)
-                    res.status(401).json({ err: 'Unauthorized' })
-                    return
-                } else {
-                    
-                    let annonce = await client
-                        .db('YourEvent')
-                        .collection('annonce')
-                        .find({ userId: authData.id })
-                    let apiResponse = await annonce.toArray()
     
-                    res.status(200).json(apiResponse)
-                }
-            }
-        )
-    }
 
     const AllAnnonce = async (request, response) => {
         let annonces = await client.db('YourEvent').collection('annonce').find()
@@ -71,44 +51,26 @@ const CreatArticle = async (request, response) => {
         response.status(200).json(apiResponse)
     }
 
-    const deleteAnnonce = async (request, response) => {
-        if (!request.body.userId || !request.body.annonceId) {
-            response.status(400).json({ error: 'suppression impossible' })
-            return
+    async function deleteAnnonce(req, res) {
+        if (!req.params.id) {
+          res.status(400).send("Id Obligatoire");
         }
-        let annonceId = new ObjectId(request.body.annonceId)
-        let userId = new ObjectId(request.body.userId)
-    
-        let user = await client
-            .db('YourEvent')
-            .collection('user')
-            .find({ _id: userId })
-    
-        let annonce = await client
-            .db('YourEvent')
-            .collection('annonce')
-            .find({ _id: annonceId })
-    
-        if (!user || !annonce) {
-            response.status(401).json({ error: 'rien existe' })
-            return
+      
+        let id = new ObjectId(req.params.id);
+      
+        let apiCall = await client
+          .db("YourEvent")
+          .collection("annonce")
+          .deleteOne({ _id: id });
+      
+        let response = await apiCall;
+      
+        if (response.deletedCount === 1) {
+          res.status(200).json({ msg: "Suppression réussie" });
+        } else {
+          res.status(204).json({ msg: "Pas d'annonce pour cette article" });
         }
-    
-        if (annonce.userId !== user._id || user.role !== 'admin') {
-            response.status(401).json({ error: 'tu es pas autoriser' })
-            return
-        }
-    
-        try {
-            await client
-                .db('YourEvent')
-                .collection('annonce')
-                .deleteOne({ _id: annonceId })
-        } catch (e) {
-            console.log(e)
-            response.status(500).json(e)
-        }
-    }
+      }
     
 
     module.exports={CreatArticle, insertUserId, AllAnnonce, deleteAnnonce}

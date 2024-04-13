@@ -41,7 +41,7 @@ const register = async (request, response) => {
 
     const login = async (request, response) => {
         if (!request.body.email || !request.body.password) {
-            response.status(400).json({ error: 'Some fields are missing' })
+            response.status(400).json({ error: 'il manque des champs' })
             return
         }
     
@@ -73,7 +73,7 @@ const register = async (request, response) => {
                 { expiresIn: '20d' }
             )
     
-            response.status(200).json({ jwt: token })
+            response.status(200).json({ jwt: token, id: user._id})
         }
     }
 
