@@ -6,6 +6,7 @@ class Annonce{
         lieu,
         date,
         userId,
+        participantsMax,
         participants,
         createdAt
     ) {
@@ -15,7 +16,8 @@ class Annonce{
         this.lieu= lieu
         this.date= date
         this.userId = userId
-        this.participants= participants
+        this.participantsMax= participantsMax
+        this.participants= [participants]
         this.createdAt = createdAt
       
     }
