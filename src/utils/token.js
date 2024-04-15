@@ -1,17 +1,21 @@
+require('dotenv').config()
+const jwt = require('jsonwebtoken')
+
+
 async function extractToken(req) {
     
     const headerWithToken = req.headers.authorization
   
-    if (typeof headerWithToken !== undefined || !headerWithToken) {
+     if (typeof headerWithToken !== undefined || !headerWithToken) {
         
-        const bearer = headerWithToken.split(' ')
+         const bearer = headerWithToken.split(' ')
 
        
-        const token = bearer[1]
+         const token = bearer[1]
 
      
         return token
-    }
+     }
 }
 
 module.exports = { extractToken }

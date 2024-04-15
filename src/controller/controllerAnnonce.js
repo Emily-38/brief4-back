@@ -4,32 +4,51 @@ const { Annonce } = require("../model/Annonce")
 const client = require('../services/connexionDB.js')
 const {insertUserId}= require('../utils/tokenGuard.js')
 const { ObjectId } = require("bson");
+const { extractToken }= require('../utils/token.js');
+const jwt= require("jsonwebtoken");
+
 
 require('dotenv').config()
 
 
  //crée une annonce 
-const CreatArticle = async (request, response) => {
-    if (
-        !request.body.title ||
-        !request.body.description ||
-        !request.body.image ||
-        !request.body.lieu ||
-        !request.body.date ||
-        !request.body.participantsMax
+const CreatArticle = async (req, response) => {
+  const token = await extractToken(req) ;
+  
+    jwt.verify(
+      token,
+    process.env.SECRET_KEY,
+    async (err, authData) => {
+        if (err) {
+
+          console.log(err)
+          res.status(401).json({ err: 'Unauthorized' })
+          return
+      } else {
+
+
+
+
+  if (
+        !req.body.title ||
+        !req.body.description ||
+        !req.body.image ||
+        !req.body.lieu ||
+        !req.body.date ||
+        !req.body.participantsMax
     ) {
         response.status(400).json({ error: 'creation echouer' })
-    }
+      }
     try {
         let annonce = new Annonce(
-            request.body.title,
-            request.body.description,
-            request.body.image,
-            request.body.lieu,
-            request.body.date,
-            request.body.userId,
-            request.body.participantsMax,
-            [],
+            req.body.title,
+            req.body.description,
+            req.body.image,
+            req.body.lieu,
+            req.body.date,
+            authData.id,
+            req.body.participantsMax,
+            authData,
             new Date()
         )
         let result = await client
@@ -37,12 +56,14 @@ const CreatArticle = async (request, response) => {
             .db('YourEvent')
             .collection('annonce')
             .insertOne(annonce)
-        response.status(200).json(result)
-    } catch (e) {
-        console.log(e)
-        response.status(500).json(e)
-    }
-    
+         response.status(200).json(result)
+                    } catch (e) {
+                       console.log(e)
+                      response.status(500).json(e)
+                    }
+                }
+             }
+          ) 
     }
 
 
@@ -50,13 +71,30 @@ const CreatArticle = async (request, response) => {
     //afficher tout les annonces
 
     const AllAnnonce = async (request, response) => {
-        let annonces = await client.db('YourEvent').collection('annonce').find()
+      // const token = await extractToken(request) ;
+      //  jwt.verify(
+      //    token,
+      //  process.env.SECRET_KEY,
+      //  async (err, authData) => {
+      //      if (err) {
+  
+      //       console.log(err)
+      //       response.status(401).json({ err: 'Unauthorized' })
+      //       return
+      //   } else {
+
+        let annonces = 
+        await client
+        .db('YourEvent')
+        .collection('annonce')
+        .find()
     
         let apiResponse = await annonces.toArray()
         response.status(200).json(apiResponse)
     }
-
-
+//   }
+//  )
+//  }
 // afficher par id
 
     const AnnonceById = async (request, response) => {
@@ -74,6 +112,20 @@ const CreatArticle = async (request, response) => {
 
     //delete
     async function deleteAnnonce(req, res) {
+      const token = await extractToken(req) ;
+  
+    jwt.verify(
+      token,
+    process.env.SECRET_KEY,
+    async (err, authData) => {
+        if (err) {
+
+          console.log(err)
+          res.status(401).json({ err: 'Unauthorized' })
+          return
+      } else {
+
+
         if (!req.params.id) {
           res.status(400).send("Id Obligatoire");
         }
@@ -93,12 +145,28 @@ const CreatArticle = async (request, response) => {
           res.status(204).json({ msg: "Pas d'annonce pour cette article" });
         }
       }
+    }
+    )
+  }
     
 
       //update une annonces 
 
       async function updateAnnonce(request, response){
         const id = new ObjectId(request.params.id);
+        const token = await extractToken(request) ;
+  
+            jwt.verify(
+              token,
+               process.env.SECRET_KEY,
+                async (err, authData) => {
+                if (err) {
+
+                console.log(err)
+                response.status(401).json({ err: 'Unauthorized' })
+                return
+      } else {
+
         if(
           !request.body.title||
           !request.body.description||
@@ -136,43 +204,60 @@ const CreatArticle = async (request, response) => {
           console.log (e)
           response.status(500).json(e)
          }
-
-
+        }
+        }
+        )
       }
           // add participant
       async function addparticipant(req, res){
+        const token = await extractToken(req) ;
+  
+            jwt.verify(
+             token,
+             process.env.SECRET_KEY,
+              async (err, authData) => {
+              if (err) {
 
-        const id = req.params.id;
-        const userId = req.body._id
-        console.log(userId)
-        if(!userId){
-        res.status(400).json({error: 'connect toi'})
-      }
+               console.log(err)
+              res.status(401).json({ err: 'Unauthorized' })
+              return
+      } else {
 
-        let user = await client
+
+        const id = new ObjectId(req.params.id) ;
+      //   const userId = req.body._id
+      //   console.log(userId)
+      //   if(!userId){
+      //   res.status(400).json({error: 'connect toi'})
+      // }
+
+        // let user = await client
         
-        .db('YourEvent')
-        .collection('user')
-        .findOne({ _id: new ObjectId (userId) })
+        // .db('YourEvent')
+        // .collection('user')
+        // .findOne({ _id: new ObjectId (userId) })
 
         try{ 
           let result=await client
           .db("YourEvent")
           .collection("annonce")
-          .updateOne({_id: new ObjectId (id)},
+          .updateOne({_id: id},
             {
               $addToSet:{
-                participants:[user] 
+                participants:[authData]
               }
     }
     );
-    console.log('Update result:', result);
+    
     res.status(200).json({ msg: "ajout reussie" });
       }catch(e){
         console.log (e)
         res.status(500).json(e)
        }
       }
+    }
+    )
+    }
     
 
     module.exports={CreatArticle, insertUserId, AllAnnonce, deleteAnnonce, updateAnnonce, AnnonceById, addparticipant}
