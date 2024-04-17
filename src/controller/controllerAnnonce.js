@@ -48,7 +48,7 @@ const CreatArticle = async (req, response) => {
             req.body.date,
             authData.id,
             req.body.participantsMax,
-            authData,
+            authData.id,
             new Date()
         )
         let result = await client
@@ -244,7 +244,7 @@ const CreatArticle = async (req, response) => {
           .updateOne({_id: id},
             {
               $addToSet:{
-                participants:[authData]
+                participants:authData.id
               }
     }
     );
@@ -258,6 +258,45 @@ const CreatArticle = async (req, response) => {
     }
     )
     }
-    
 
-    module.exports={CreatArticle, insertUserId, AllAnnonce, deleteAnnonce, updateAnnonce, AnnonceById, addparticipant}
+  //supprimer un participant
+
+  async function deleteParticipant(req, res) {
+    const token = await extractToken(req) ;
+
+  jwt.verify(
+    token,
+  process.env.SECRET_KEY,
+  async (err, authData) => {
+      if (err) {
+
+        console.log(err)
+        res.status(401).json({ err: 'Unauthorized' })
+        return
+    } else {
+
+
+      if (!req.params.id) {
+        res.status(400).send("Id Obligatoire");
+      }
+    
+      let id = new ObjectId(req.params.id);
+    try{
+       await client
+        .db("YourEvent")
+        .collection("annonce")
+        .updateOne({ _id: id },
+        {
+          $pull:{participants:authData.id}
+        }
+      );
+        res.status(200).json({ msg: "Suppression participant réussie" });
+      } catch {
+        res.status(204).json({ msg: "Pas d'annonce pour cette article" });
+      }
+    }
+  }
+  )
+}
+
+    module.exports={CreatArticle, insertUserId, AllAnnonce, deleteAnnonce, updateAnnonce, AnnonceById, addparticipant,deleteParticipant}

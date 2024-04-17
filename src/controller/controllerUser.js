@@ -77,5 +77,16 @@ const register = async (request, response) => {
         }
     }
 
+    const getAllUser= async (req,res)=>{
+        
+        let users = 
+        await client
+        .db('YourEvent')
+        .collection('user')
+        .find()
     
-    module.exports={register, login}
+        let apiResponse = await users.toArray()
+        res.status(200).json(apiResponse)
+    }
+    
+    module.exports={register, login, getAllUser}
