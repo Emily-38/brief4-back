@@ -2,7 +2,7 @@
 
 const { Annonce } = require("../model/Annonce")
 const client = require('../services/connexionDB.js')
-const {insertUserId}= require('../utils/tokenGuard.js')
+
 const { ObjectId } = require("bson");
 const { extractToken }= require('../utils/token.js');
 const jwt= require("jsonwebtoken");
@@ -25,9 +25,6 @@ const CreatArticle = async (req, response) => {
           res.status(401).json({ err: 'Unauthorized' })
           return
       } else {
-
-
-
 
   if (
         !req.body.title ||
@@ -225,17 +222,7 @@ const CreatArticle = async (req, response) => {
 
 
         const id = new ObjectId(req.params.id) ;
-      //   const userId = req.body._id
-      //   console.log(userId)
-      //   if(!userId){
-      //   res.status(400).json({error: 'connect toi'})
-      // }
-
-        // let user = await client
-        
-        // .db('YourEvent')
-        // .collection('user')
-        // .findOne({ _id: new ObjectId (userId) })
+     
 
         try{ 
           let result=await client
@@ -299,4 +286,4 @@ const CreatArticle = async (req, response) => {
   )
 }
 
-    module.exports={CreatArticle, insertUserId, AllAnnonce, deleteAnnonce, updateAnnonce, AnnonceById, addparticipant,deleteParticipant}
+    module.exports={CreatArticle, AllAnnonce, deleteAnnonce, updateAnnonce, AnnonceById, addparticipant,deleteParticipant}
